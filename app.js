@@ -1,12 +1,12 @@
 const $ = id => document.getElementById(id);
-let saved={};try{saved=JSON.parse(localStorage.getItem('inochi-settings')||'{}')||{}}catch{}
+let saved={};try{saved=JSON.parse(localStorage.getItem('inochi-settings-v2')||'{}')||{}}catch{}
 const valid=n=>Number.isInteger(n)&&n>=1&&n<=990;
-let minutes=valid(saved.minutes)?saved.minutes:25, remaining=minutes*60000, deadline=0, mode='ready', audio;
+let minutes=valid(saved.minutes)?saved.minutes:990, remaining=minutes*60000, deadline=0, mode='ready', audio;
 $('minutes').value=minutes;$('purpose').value=typeof saved.purpose==='string'?saved.purpose.slice(0,60):'';$('sound').checked=saved.sound===true;
-function save(){try{localStorage.setItem('inochi-settings',JSON.stringify({minutes,purpose:$('purpose').value,sound:$('sound').checked}))}catch{}}
+function save(){try{localStorage.setItem('inochi-settings-v2',JSON.stringify({minutes,purpose:$('purpose').value,sound:$('sound').checked}))}catch{}}
 function current(){return mode==='running'?Math.max(0,deadline-Date.now()):remaining}
 function render(){const left=current(), seconds=Math.ceil(left/1000), ratio=left/(minutes*60000);$('time').innerHTML=`${String(Math.floor(seconds/60)).padStart(2,'0')}<span>:</span>${String(seconds%60).padStart(2,'0')}`;$('time').setAttribute('aria-label',`残り${Math.floor(seconds/60)}分${seconds%60}秒`);
-// Both reservoirs share the same area scale; the neck follows the curved glass.
+// Reservoir levels follow elapsed time; sand is clipped to the glass.
 const level=148-Math.sqrt(ratio)*98;$('topSand').setAttribute('d',`M40 ${level}H200V149H40Z`);const height=(1-ratio)*91;$('bottomSand').setAttribute('d',`M40 270V${270-height*.6}Q120 ${270-height*1.4} 200 ${270-height*.6}V270Z`);
 $('state').textContent={ready:'準備ができました',running:'大切な時間が、流れています',paused:'ひと休みしています',done:'おつかれさまでした'}[mode];document.body.classList.toggle('running',mode==='running');$('start').innerHTML=mode==='running'?'Ⅱ <span>一時停止</span>':mode==='paused'?'▶ <span>つづける</span>':mode==='done'?'↻ <span>もう一度</span>':'▶ <span>はじめる</span>';
 const purpose=$('purpose').value.trim();$('sessionLabel').textContent=mode==='done'?`${minutes}分を、${purpose||'大切なこと'}に捧げました。`:purpose?`${purpose}のための、${minutes}分。`:`あなたのための、${minutes}分。`;
