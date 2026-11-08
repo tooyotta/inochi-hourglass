@@ -25,3 +25,8 @@
 ## 境界と未実装
 
 依頼に基づき専用repositoryのみをGitHub Pagesで公開。画面を閉じた状態での通知、同期、履歴、寿命推定は未実装。音は端末・ブラウザに制限される。
+
+## 公開先
+
+独自ドメイン: https://hourglass.toyota.im/
+GitHub Pagesに配信し、Cloudflare DNSのCNAMEで接続。`CNAME`をソースに保持。証明書・HTTPSの確認状態は `design/custom-domain-plan.md` を参照。
