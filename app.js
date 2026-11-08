@@ -6,8 +6,13 @@ $('minutes').value=minutes;$('purpose').value=typeof saved.purpose==='string'?sa
 function save(){try{localStorage.setItem('inochi-settings-v2',JSON.stringify({minutes,purpose:$('purpose').value,sound:$('sound').checked}))}catch{}}
 function current(){return mode==='running'?Math.max(0,deadline-Date.now()):remaining}
 function render(){const left=current(), seconds=Math.ceil(left/1000), ratio=left/(minutes*60000);$('time').innerHTML=`${String(Math.floor(seconds/60)).padStart(2,'0')}<span>:</span>${String(seconds%60).padStart(2,'0')}`;$('time').setAttribute('aria-label',`残り${Math.floor(seconds/60)}分${seconds%60}秒`);
-// Reservoir levels follow elapsed time; sand is clipped to the glass.
-const level=148-Math.sqrt(ratio)*98;$('topSand').setAttribute('d',`M40 ${level}H200V149H40Z`);const height=(1-ratio)*91;$('bottomSand').setAttribute('d',`M40 270V${270-height*.6}Q120 ${270-height*1.4} 200 ${270-height*.6}V270Z`);
+// Sand is composited into the photographed empty glass, in image coordinates.
+const level=741-Math.sqrt(ratio)*421;
+$('topSand').setAttribute('d',`M250 ${level}Q512 ${level-8} 774 ${level}V745H250Z`);
+$('surface').setAttribute('d',`M250 ${level}Q512 ${level-8} 774 ${level}`);
+const height=(1-ratio)*345, edge=1310-height*.62, peak=1310-height;
+$('bottomSand').setAttribute('d',`M250 1320V${edge}Q390 ${edge-10} 512 ${peak}Q634 ${edge-10} 774 ${edge}V1320Z`);
+$('stream').setAttribute('d',`M512 747V${Math.min(1300,peak+5)}`);
 $('state').textContent={ready:'準備ができました',running:'大切な時間が、流れています',paused:'ひと休みしています',done:'おつかれさまでした'}[mode];document.body.classList.toggle('running',mode==='running');$('start').innerHTML=mode==='running'?'Ⅱ <span>一時停止</span>':mode==='paused'?'▶ <span>つづける</span>':mode==='done'?'↻ <span>もう一度</span>':'▶ <span>はじめる</span>';
 const purpose=$('purpose').value.trim();$('sessionLabel').textContent=mode==='done'?`${minutes}分を、${purpose||'大切なこと'}に捧げました。`:purpose?`${purpose}のための、${minutes}分。`:`あなたのための、${minutes}分。`;
 for(const el of document.querySelectorAll('[data-min]')){const active=Number(el.dataset.min)===minutes;el.classList.toggle('selected',active);el.setAttribute('aria-pressed',String(active));el.disabled=mode==='running'||mode==='paused'}$('minutes').disabled=mode==='running'||mode==='paused';$('special').disabled=mode==='running'||mode==='paused';}
