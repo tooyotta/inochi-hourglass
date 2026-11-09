@@ -7,5 +7,35 @@
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 /* Frameless glass; the photograph, reservoirs and particles scale as one object. */
 .instrument{position:relative;overflow:hidden;touch-action:pan-y}.glass{transform-origin:50% 48%;will-change:transform;touch-action:none;user-select:none;-webkit-user-select:none}.glass img{pointer-events:none;-webkit-user-drag:none}.glass canvas{position:absolute;inset:0;width:100%;height:100%;z-index:2;pointer-events:none}.glass .reflection{z-index:3;opacity:.48}.zoom-tools{position:relative;z-index:5;display:flex;align-items:center;justify-content:center;gap:15px;margin-top:0}.zoom-tools button{border:1px solid #302c24;color:#b4aa96;background:#10100ecc;min-width:30px;height:29px;border-radius:4px;font-size:15px}.zoom-tools #zoomReset{font:10px 'Noto Sans JP',sans-serif;width:49px;border-color:transparent;background:transparent;letter-spacing:.03em}.zoom-hint{position:relative;z-index:5;color:#7e776b;font-size:8px;text-align:center;letter-spacing:.03em;margin:8px 0 12px;pointer-events:none}.glass svg #stream{display:none!important}@media(min-width:1100px){.glass{max-width:430px}}@media(max-width:600px){.instrument{display:block}.glass{margin:0 auto;max-width:265px}.controls{margin-top:12px}.zoom-hint{margin-bottom:0}.zoom-tools{margin-top:4px}}@media(max-width:600px) and (max-height:780px){.glass{width:215px}.controls{margin-top:10px}.zoom-hint{font-size:7px}}
-/* Title remains legible above the glass on desktop and phone. */
-.brand{font-size:28px;letter-spacing:.14em;line-height:1.4}@media(max-width:600px){.brand{font-size:23px;letter-spacing:.12em}}
+header {
+  height: auto;
+  justify-content: center;
+  padding: clamp(26px, 4vw, 54px) 44px 10px;
+}
+
+.page-title {
+  margin: 0;
+  text-align: center;
+}
+
+.brand {
+  display: block;
+  font-size: clamp(34px, 10vw, 78px);
+  font-weight: 500;
+  line-height: 1.16;
+  letter-spacing: .08em;
+  padding-inline-start: .08em;
+  color: #fff0d6;
+  text-shadow: 0 0 32px #c4aa7d30;
+  white-space: nowrap;
+}
+
+.about-button {
+  position: absolute;
+  right: clamp(12px, 3vw, 46px);
+  top: 14px;
+}
+
+@media (min-width: 1100px) {
+  main { min-height: calc(100svh - 220px); }
+}
