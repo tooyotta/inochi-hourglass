@@ -19,7 +19,7 @@ const elapsedPercent = (1 - ratio) * 100;
 $('elapsedPercent').textContent = `${Math.floor(elapsedPercent)}%`;
 $('elapsedPercent').parentElement.style.setProperty('--elapsed', `${elapsedPercent}%`);
 $('state').textContent={ready:'準備ができました',running:'大切な時間が、流れています',paused:'ひと休みしています',done:'おつかれさまでした'}[mode];document.body.classList.toggle('running',mode==='running');$('start').innerHTML=mode==='running'?'Ⅱ <span>一時停止</span>':mode==='paused'?'▶ <span>つづける</span>':mode==='done'?'↻ <span>もう一度</span>':'▶ <span>はじめる</span>';
-const purpose=$('purpose').value.trim();$('sessionLabel').textContent=mode==='done'?`${minutes}分を、${purpose||'大切なこと'}に捧げました。`:purpose?`${purpose}のための、${minutes}分。`:`あなたのための、${minutes}分。`;
+const purpose=$('purpose').value.trim();$('sessionLabel').textContent=mode==='done'?`${minutes}分を、${purpose||'大切なこと'}に捧げました。`:purpose?`${purpose}のための、${minutes}分。`:'';
 for(const el of document.querySelectorAll('[data-min]')){const active=Number(el.dataset.min)===minutes;el.classList.toggle('selected',active);el.setAttribute('aria-pressed',String(active));el.disabled=mode==='running'||mode==='paused'}$('minutes').disabled=mode==='running'||mode==='paused';$('special').disabled=mode==='running'||mode==='paused';}
 function choose(n){if(!valid(n)){$('validation').textContent='1〜990の整数で入力してください。';return false}minutes=n;remaining=n*60000;mode='ready';$('minutes').value=n;$('validation').textContent='';save();render();return true}
 function unlockAudio(){if(!$('sound').checked)return;try{audio ||= new (window.AudioContext||window.webkitAudioContext)();audio.resume()}catch{}}

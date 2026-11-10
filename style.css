@@ -175,3 +175,11 @@ body {
 @media (min-width: 1100px) {
   .glass { max-width: min(490px, calc((100svh - 160px) / 1.5)); }
 }
+
+.session-label:empty {
+  display: none;
+}
+
+.time {
+  margin-bottom: 12px;
+}
