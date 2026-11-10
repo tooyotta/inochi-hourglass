@@ -12,13 +12,12 @@ for(let i=0;i<34;i++){const t=(phase*1.7+random(i+400))%1, side=i%2?1:-1, reach=
 function sync(){if(frame)cancelAnimationFrame(frame);frame=0;draw(performance.now())}
 new MutationObserver(sync).observe(glass,{attributes:true,attributeFilter:['data-active','data-landing']});document.addEventListener('visibilitychange',sync);reduced.addEventListener('change',sync);sync();
 // Object-only zoom: surrounding controls remain readable and usable.
-let scale=1,tx=0,ty=0,gesture=false,initialDistance=0,initialScale=1,previous=null;const points=new Map();
-const zoomLabel=document.getElementById('zoomReset');
-function apply(){const box=stage.getBoundingClientRect();const maxX=box.width*(scale-1)/2,maxY=(box.width*1.5)*(scale-1)/2;tx=Math.max(-maxX,Math.min(maxX,tx));ty=Math.max(-maxY,Math.min(maxY,ty));glass.style.transform=`translate(${tx}px,${ty}px) scale(${scale})`;zoomLabel.textContent=`${Math.round(scale*100)}%`;document.getElementById('zoomOut').disabled=scale<=1;document.getElementById('zoomIn').disabled=scale>=3;window.hourglassGestureActive=gesture||scale>1;}
+let scale=1,tx=0,ty=0,gesture=false,initialDistance=0,initialScale=1;const points=new Map();
+function apply(){const box=stage.getBoundingClientRect();const maxX=box.width*(scale-1)/2,maxY=(box.width*1.5)*(scale-1)/2;tx=Math.max(-maxX,Math.min(maxX,tx));ty=Math.max(-maxY,Math.min(maxY,ty));glass.style.transform=`translate(${tx}px,${ty}px) scale(${scale})`;window.hourglassGestureActive=gesture||scale>1;}
 function zoom(next){scale=Math.max(1,Math.min(3,next));if(scale===1){tx=0;ty=0}apply()}
-document.getElementById('zoomIn').onclick=()=>zoom(scale+.25);document.getElementById('zoomOut').onclick=()=>zoom(scale-.25);zoomLabel.onclick=()=>zoom(1);
 const distance=()=>{const [a,b]=[...points.values()];return Math.hypot(a.x-b.x,a.y-b.y)};
-stage.addEventListener('pointerdown',e=>{if(e.target.closest('.zoom-tools'))return;points.set(e.pointerId,{x:e.clientX,y:e.clientY});if(scale>1)stage.setPointerCapture(e.pointerId);previous={x:e.clientX,y:e.clientY};if(points.size===2){for(const id of points.keys())stage.setPointerCapture(id);gesture=true;initialDistance=distance();initialScale=scale;apply()}});
+stage.addEventListener('pointerdown',e=>{if(!e.target.closest(".glass"))return;points.set(e.pointerId,{x:e.clientX,y:e.clientY});if(scale>1)stage.setPointerCapture(e.pointerId);if(points.size===2){for(const id of points.keys())stage.setPointerCapture(id);gesture=true;initialDistance=distance();initialScale=scale;apply()}});
 stage.addEventListener('pointermove',e=>{if(!points.has(e.pointerId))return;const old=points.get(e.pointerId);points.set(e.pointerId,{x:e.clientX,y:e.clientY});if(points.size===2){gesture=true;zoom(initialScale*distance()/Math.max(1,initialDistance))}else if(scale>1){gesture=true;tx+=e.clientX-old.x;ty+=e.clientY-old.y;apply()}});
-function release(e){points.delete(e.pointerId);previous=null;if(points.size<2)initialDistance=0;setTimeout(()=>{if(points.size===0){gesture=false;apply()}},100)}stage.addEventListener('pointerup',release);stage.addEventListener('pointercancel',release);stage.addEventListener('lostpointercapture',e=>points.delete(e.pointerId));
+function release(e){points.delete(e.pointerId);if(points.size<2)initialDistance=0;setTimeout(()=>{if(points.size===0){gesture=false;apply()}},100)}stage.addEventListener('pointerup',release);stage.addEventListener('pointercancel',release);stage.addEventListener('lostpointercapture',e=>points.delete(e.pointerId));
+glass.addEventListener('dblclick',()=>{if(scale>1)zoom(1)});
 stage.addEventListener('wheel',e=>{if(e.ctrlKey){e.preventDefault();zoom(scale*Math.exp(-e.deltaY*.008))}},{passive:false});apply();
