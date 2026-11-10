@@ -46,7 +46,7 @@ header {
   }
 
   .glass {
-    width: min(100%, clamp(150px, calc((100svh - 355px) / 1.5), 265px));
+    width: min(100%, clamp(150px, calc((100svh - 405px) / 1.5), 265px));
   }
 
   .zoom-hint {
