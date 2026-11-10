@@ -15,9 +15,6 @@ $('bottomSand').setAttribute('d',`M125 1450V${edge}Q350 ${edge-12} 512 ${peak}Q6
 $('stream').setAttribute('d','');
 $('glassButton').dataset.landing=String(Math.min(1420,peak+4));
 $('glassButton').dataset.active=String(mode==='running');
-const elapsedPercent = (1 - ratio) * 100;
-$('elapsedPercent').textContent = `${Math.floor(elapsedPercent)}%`;
-$('elapsedPercent').parentElement.style.setProperty('--elapsed', `${elapsedPercent}%`);
 $('state').textContent={ready:'準備ができました',running:'大切な時間が、流れています',paused:'ひと休みしています',done:'おつかれさまでした'}[mode];document.body.classList.toggle('running',mode==='running');$('start').innerHTML=mode==='running'?'Ⅱ <span>一時停止</span>':mode==='paused'?'▶ <span>つづける</span>':mode==='done'?'↻ <span>もう一度</span>':'▶ <span>はじめる</span>';
 const purpose=$('purpose').value.trim();$('sessionLabel').textContent=mode==='done'?`${minutes}分を、${purpose||'大切なこと'}に捧げました。`:purpose?`${purpose}のための、${minutes}分。`:'';
 for(const el of document.querySelectorAll('[data-min]')){const active=Number(el.dataset.min)===minutes;el.classList.toggle('selected',active);el.setAttribute('aria-pressed',String(active));el.disabled=mode==='running'||mode==='paused'}$('minutes').disabled=mode==='running'||mode==='paused';$('special').disabled=mode==='running'||mode==='paused';}
