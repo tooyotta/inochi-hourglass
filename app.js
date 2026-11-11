@@ -5,15 +5,33 @@ let minutes=valid(saved.minutes)?saved.minutes:990, remaining=minutes*60000, dea
 $('minutes').value=minutes;$('purpose').value=typeof saved.purpose==='string'?saved.purpose.slice(0,60):'';$('sound').checked=saved.sound===true;
 function save(){try{localStorage.setItem('inochi-settings-v2',JSON.stringify({minutes,purpose:$('purpose').value,sound:$('sound').checked}))}catch{}}
 function current(){return mode==='running'?Math.max(0,deadline-Date.now()):remaining}
+function renderSand(ratio) {
+  const level = 757 - Math.sqrt(ratio) * 410;
+  // The visible surface narrows as it approaches the neck of the glass.
+  const radius = 350 * Math.pow(Math.max(0, (757 - level) / 410), 0.83);
+  const depth = radius * 0.16;
+  const left = 512 - radius;
+  const right = 512 + radius;
+  const front = `C${left} ${level + depth} ${right} ${level + depth} ${right} ${level}`;
+
+  $('topSand').setAttribute('d', ratio > 0
+    ? `M${left} ${level}${front}L900 760H124Z` : '');
+  $('surface').setAttribute('d', ratio > 0
+    ? `M${left} ${level}${front}C${right} ${level - depth} ${left} ${level - depth} ${left} ${level}Z` : '');
+
+  const elapsed = 1 - ratio;
+  const pileSize = Math.cbrt(elapsed);
+  const peak = 1424 - pileSize * 237;
+  const spread = 355 * pileSize;
+  const foot = 1424 - pileSize * 27;
+  const base = 1424 + pileSize * 51;
+  $('bottomSand').setAttribute('d', elapsed > 0
+    ? `M${512 - spread} ${foot}C${512 - spread * .58} ${foot - 42 * pileSize} ${512 - spread * .24} ${peak} 512 ${peak}C${512 + spread * .25} ${peak} ${512 + spread * .64} ${foot - 43 * pileSize} ${512 + spread} ${foot}Q512 ${base} ${512 - spread} ${foot}Z` : '');
+  $('glassButton').dataset.landing = String(Math.min(1420, peak + 4));
+}
+
 function render(){const left=current(), seconds=Math.ceil(left/1000), ratio=left/(minutes*60000);$('time').innerHTML=`${String(Math.floor(seconds/60)).padStart(2,'0')}<span>:</span>${String(seconds%60).padStart(2,'0')}`;$('time').setAttribute('aria-label',`残り${Math.floor(seconds/60)}分${seconds%60}秒`);
-// Image-aligned reservoirs. Particle renderer reads the same landing height.
-const level=757-Math.sqrt(ratio)*452;
-$('topSand').setAttribute('d',`M125 ${level}Q512 ${level-7} 899 ${level}V760H125Z`);
-$('surface').setAttribute('d',`M125 ${level}Q512 ${level-7} 899 ${level}`);
-const height=(1-ratio)*385, edge=1430-height*.57, peak=1430-height;
-$('bottomSand').setAttribute('d',`M125 1450V${edge}Q350 ${edge-12} 512 ${peak}Q674 ${edge-12} 899 ${edge}V1450Z`);
-$('stream').setAttribute('d','');
-$('glassButton').dataset.landing=String(Math.min(1420,peak+4));
+renderSand(ratio);
 $('glassButton').dataset.active=String(mode==='running');
 $('state').textContent={ready:'準備ができました',running:'大切な時間が、流れています',paused:'ひと休みしています',done:'おつかれさまでした'}[mode];document.body.classList.toggle('running',mode==='running');$('start').innerHTML=mode==='running'?'Ⅱ <span>一時停止</span>':mode==='paused'?'▶ <span>つづける</span>':mode==='done'?'↻ <span>もう一度</span>':'▶ <span>はじめる</span>';
 const purpose=$('purpose').value.trim();$('sessionLabel').textContent=mode==='done'?`${minutes}分を、${purpose||'大切なこと'}に捧げました。`:purpose?`${purpose}のための、${minutes}分。`:'';

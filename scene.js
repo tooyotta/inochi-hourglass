@@ -5,10 +5,10 @@ const lower=new Path2D('M512 778C480 833 401 865 312 935C205 1019 142 1126 146 1
 const random=n=>{const v=Math.sin(n*127.1+311.7)*43758.5453;return v-Math.floor(v)};
 function draw(now){frame=0;const active=glass.dataset.active==='true'&&!document.hidden;if(active&&last)phase+=Math.min((now-last)/1000,.05);last=now;ctx.clearRect(0,0,1024,1536);if(!active){last=0;return}const landing=Number(glass.dataset.landing)||1420,fall=landing-773;ctx.save();ctx.clip(lower);
 // A translucent core is surrounded by hundreds of individually accelerating grains.
-const core=ctx.createLinearGradient(512,773,512,landing);core.addColorStop(0,'#dfc27d70');core.addColorStop(.6,'#c6a56225');core.addColorStop(1,'#bca16a08');ctx.fillStyle=core;ctx.fillRect(510.7,773,2.6,fall);
-for(let i=0;i<220;i++){const age=(phase*(.9+random(i+8)*.4)+random(i))%1, y=773+age*age*fall, spread=1+age*4, x=512+(random(i+99)-.5)*spread*2+Math.sin(phase*7+i)*.7;ctx.globalAlpha=.35+random(i+7)*.6;ctx.fillStyle=i%4===0?'#f4dea2':i%3===0?'#c9aa64':'#a68d51';const r=.6+random(i+3)*1.1;ctx.fillRect(x,y,r,r*(1+age*.7));}
+const core=ctx.createLinearGradient(512,773,512,landing);core.addColorStop(0,'#b87e6378');core.addColorStop(.6,'#9f654d60');core.addColorStop(1,'#a5745528');ctx.fillStyle=core;ctx.fillRect(510.7,773,2.6,fall);
+for(let i=0;i<220;i++){const age=(phase*(.9+random(i+8)*.4)+random(i))%1, y=773+age*age*fall, spread=1+age*4, x=512+(random(i+99)-.5)*spread*2+Math.sin(phase*7+i)*.7;ctx.globalAlpha=.35+random(i+7)*.6;ctx.fillStyle=i%4===0?'#e4ac8c':i%3===0?'#c1886c':'#9e674e';const r=.6+random(i+3)*1.1;ctx.fillRect(x,y,r,r*(1+age*.7));}
 // Impact grains arc outwards and settle into the mound.
-for(let i=0;i<34;i++){const t=(phase*1.7+random(i+400))%1, side=i%2?1:-1, reach=8+random(i+300)*35;ctx.globalAlpha=(1-t)*.65;ctx.fillStyle='#d6ba79';const x=512+side*reach*t,y=landing-18*Math.sin(t*Math.PI)+t*reach*.42;ctx.fillRect(x,y,1.1,1.1)}ctx.restore();ctx.globalAlpha=1;if(!reduced.matches)frame=requestAnimationFrame(draw)}
+for(let i=0;i<34;i++){const t=(phase*1.7+random(i+400))%1, side=i%2?1:-1, reach=8+random(i+300)*35;ctx.globalAlpha=(1-t)*.65;ctx.fillStyle='#c28b70';const x=512+side*reach*t,y=landing-18*Math.sin(t*Math.PI)+t*reach*.42;ctx.fillRect(x,y,1.1,1.1)}ctx.restore();ctx.globalAlpha=1;if(!reduced.matches)frame=requestAnimationFrame(draw)}
 function sync(){if(frame)cancelAnimationFrame(frame);frame=0;draw(performance.now())}
 new MutationObserver(sync).observe(glass,{attributes:true,attributeFilter:['data-active','data-landing']});document.addEventListener('visibilitychange',sync);reduced.addEventListener('change',sync);sync();
 // Object-only zoom: surrounding controls remain readable and usable.
