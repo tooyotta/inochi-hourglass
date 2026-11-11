@@ -6,14 +6,20 @@ const random=n=>{const v=Math.sin(n*127.1+311.7)*43758.5453;return v-Math.floor(
 // Small clumps leave the neck at different rates. Evaluate the rate at
 // release time so dense sections travel down the stream with the grains.
 function flowAt(seconds) {
-  const surge = Math.pow(0.5 + 0.5 * Math.sin(seconds * 6.7), 3);
-  const variation = 0.5 + 0.5 * Math.sin(seconds * 13.1 + 1.4);
-  return 0.28 + 0.5 * surge + 0.22 * variation;
+  const interval = seconds / 0.9;
+  const section = Math.floor(interval);
+  const position = interval - section;
+  const center = 0.24 + random(section + 6100) * 0.52;
+  const halfWidth = 0.06 + random(section + 6200) * 0.16;
+  const distance = Math.abs(position - center) / halfWidth;
+  const burst = Math.max(0, 1 - distance * distance) ** 2;
+  const strength = 0.58 + random(section + 6300) * 0.4;
+  return 0.02 + burst * strength;
 }
 
 const fallingGrains = Array.from({ length: 240 }, (_, i) => ({
   offset: random(i),
-  speed: 0.9 + random(i + 8) * 0.4,
+  speed: 0.97 + random(i + 8) * 0.1,
   scatter: random(i + 99) - 0.5,
   size: 0.65 + random(i + 3) * 1.2,
   density: random(i + 701),
@@ -59,16 +65,23 @@ function draw(now) {
 
   const landing = Number(glass.dataset.landing) || 1420;
   const fall = landing - 773;
-  const flow = flowAt(phase);
   ctx.save();
   ctx.clip(lower);
 
   const core = ctx.createLinearGradient(512, 773, 512, landing);
   core.addColorStop(0, '#b87e6378');
   core.addColorStop(1, '#a5745528');
-  ctx.globalAlpha = 0.35 + flow * 0.55;
   ctx.fillStyle = core;
-  ctx.fillRect(512 - flow * 1.5, 773, 1.5 + flow * 2.5, fall);
+  // Thin and dense sections fall together with the individual grains.
+  const sections = 32;
+  for (let i = 0; i < sections; i++) {
+    const start = i / sections;
+    const end = (i + 1) / sections;
+    const flow = flowAt(phase - (start + end) / 2);
+    ctx.globalAlpha = flow * 0.85;
+    const width = 1 + flow * 4;
+    ctx.fillRect(512 - width / 2, 773 + start * start * fall, width, (end * end - start * start) * fall);
+  }
 
   for (const grain of fallingGrains) {
     const age = (phase * grain.speed + grain.offset) % 1;
