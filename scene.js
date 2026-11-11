@@ -3,12 +3,103 @@ const reduced=matchMedia('(prefers-reduced-motion: reduce)');
 let phase=0,last=0,frame=0;
 const lower=new Path2D('M512 778C480 833 401 865 312 935C205 1019 142 1126 146 1238C149 1324 189 1393 278 1410Q512 1440 746 1410C835 1393 875 1324 878 1238C882 1126 819 1019 712 935C623 865 544 833 512 778Z');
 const random=n=>{const v=Math.sin(n*127.1+311.7)*43758.5453;return v-Math.floor(v)};
-function draw(now){frame=0;const active=glass.dataset.active==='true'&&!document.hidden;if(active&&last)phase+=Math.min((now-last)/1000,.05);last=now;ctx.clearRect(0,0,1024,1536);if(!active){last=0;return}const landing=Number(glass.dataset.landing)||1420,fall=landing-773;ctx.save();ctx.clip(lower);
-// A translucent core is surrounded by hundreds of individually accelerating grains.
-const core=ctx.createLinearGradient(512,773,512,landing);core.addColorStop(0,'#b87e6378');core.addColorStop(.6,'#9f654d60');core.addColorStop(1,'#a5745528');ctx.fillStyle=core;ctx.fillRect(510.7,773,2.6,fall);
-for(let i=0;i<220;i++){const age=(phase*(.9+random(i+8)*.4)+random(i))%1, y=773+age*age*fall, spread=1+age*4, x=512+(random(i+99)-.5)*spread*2+Math.sin(phase*7+i)*.7;ctx.globalAlpha=.35+random(i+7)*.6;ctx.fillStyle=i%4===0?'#e4ac8c':i%3===0?'#c1886c':'#9e674e';const r=.6+random(i+3)*1.1;ctx.fillRect(x,y,r,r*(1+age*.7));}
-// Impact grains arc outwards and settle into the mound.
-for(let i=0;i<34;i++){const t=(phase*1.7+random(i+400))%1, side=i%2?1:-1, reach=8+random(i+300)*35;ctx.globalAlpha=(1-t)*.65;ctx.fillStyle='#c28b70';const x=512+side*reach*t,y=landing-18*Math.sin(t*Math.PI)+t*reach*.42;ctx.fillRect(x,y,1.1,1.1)}ctx.restore();ctx.globalAlpha=1;if(!reduced.matches)frame=requestAnimationFrame(draw)}
+// Small clumps leave the neck at different rates. Evaluate the rate at
+// release time so dense sections travel down the stream with the grains.
+function flowAt(seconds) {
+  const surge = Math.pow(0.5 + 0.5 * Math.sin(seconds * 6.7), 3);
+  const variation = 0.5 + 0.5 * Math.sin(seconds * 13.1 + 1.4);
+  return 0.28 + 0.5 * surge + 0.22 * variation;
+}
+
+const fallingGrains = Array.from({ length: 240 }, (_, i) => ({
+  offset: random(i),
+  speed: 0.9 + random(i + 8) * 0.4,
+  scatter: random(i + 99) - 0.5,
+  size: 0.65 + random(i + 3) * 1.2,
+  density: random(i + 701),
+  facet: random(i + 800) * Math.PI * 2,
+  color: i % 3 === 0 ? '#d9a383' : '#aa7058',
+}));
+
+const surfaceFacets = Array.from({ length: 220 }, (_, i) => ({
+  x: 160 + random(i + 2100) * 704,
+  y: i < 110 ? 295 + random(i + 3100) * 465 : 1160 + random(i + 3100) * 264,
+  normal: random(i + 4200) * Math.PI * 2,
+  size: 1 + random(i + 5200) * 1.6,
+}));
+
+function drawSurfaceGlints(path, chamber) {
+  const outline = path.getAttribute('d');
+  if (!outline) return;
+  ctx.save();
+  ctx.clip(chamber);
+  ctx.clip(new Path2D(outline));
+  ctx.fillStyle = '#ffe0be';
+  // Like BYOBU's foil facets, a grain flashes only near the reflection angle.
+  for (const grain of surfaceFacets) {
+    const alignment = Math.cos(grain.normal + phase * 2.3 + grain.x * 0.008);
+    if (alignment < 0.989) continue;
+    ctx.globalAlpha = Math.pow((alignment - 0.989) / 0.011, 2) * 0.9;
+    ctx.fillRect(grain.x, grain.y, grain.size, grain.size * 0.72);
+  }
+  ctx.restore();
+}
+
+const upper = new Path2D(document.querySelector('#upper path').getAttribute('d'));
+const upperSurface = document.getElementById('surface');
+const bottomPile = document.getElementById('bottomSand');
+
+function draw(now) {
+  frame = 0;
+  const active = glass.dataset.active === 'true' && !document.hidden;
+  if (active && last) phase += Math.min((now - last) / 1000, 0.05);
+  last = active ? now : 0;
+  ctx.clearRect(0, 0, 1024, 1536);
+  if (!active) return;
+
+  const landing = Number(glass.dataset.landing) || 1420;
+  const fall = landing - 773;
+  const flow = flowAt(phase);
+  ctx.save();
+  ctx.clip(lower);
+
+  const core = ctx.createLinearGradient(512, 773, 512, landing);
+  core.addColorStop(0, '#b87e6378');
+  core.addColorStop(1, '#a5745528');
+  ctx.globalAlpha = 0.35 + flow * 0.55;
+  ctx.fillStyle = core;
+  ctx.fillRect(512 - flow * 1.5, 773, 1.5 + flow * 2.5, fall);
+
+  for (const grain of fallingGrains) {
+    const age = (phase * grain.speed + grain.offset) % 1;
+    const packetFlow = flowAt(phase - age / grain.speed);
+    if (grain.density > packetFlow) continue;
+    const y = 773 + age * age * fall;
+    const x = 512 + grain.scatter * (2 + age * (5 + packetFlow * 4));
+    const alignment = Math.cos(grain.facet + age * 15 + phase * 3);
+    const glint = alignment > 0.992;
+    ctx.globalAlpha = glint ? 0.96 : 0.4 + packetFlow * 0.4;
+    ctx.fillStyle = glint ? '#ffe3c2' : grain.color;
+    const size = grain.size * (glint ? 1.45 : 1);
+    ctx.fillRect(x, y, size, size * (1 + age * 0.9));
+  }
+
+  for (let i = 0; i < 34; i++) {
+    const age = (phase * 1.7 + random(i + 400)) % 1;
+    if (random(i + 900) > flowAt(phase - age / 1.7 - 0.7)) continue;
+    const reach = 8 + random(i + 300) * 35;
+    const x = 512 + (i % 2 ? 1 : -1) * reach * age;
+    const y = landing - 18 * Math.sin(age * Math.PI) + age * reach * 0.42;
+    ctx.globalAlpha = (1 - age) * 0.65;
+    ctx.fillStyle = '#c28b70';
+    ctx.fillRect(x, y, 1.1, 1.1);
+  }
+
+  ctx.restore();
+  drawSurfaceGlints(upperSurface, upper);
+  drawSurfaceGlints(bottomPile, lower);
+  if (!reduced.matches) frame = requestAnimationFrame(draw);
+}
 function sync(){if(frame)cancelAnimationFrame(frame);frame=0;draw(performance.now())}
 new MutationObserver(sync).observe(glass,{attributes:true,attributeFilter:['data-active','data-landing']});document.addEventListener('visibilitychange',sync);reduced.addEventListener('change',sync);sync();
 // Object-only zoom: surrounding controls remain readable and usable.
